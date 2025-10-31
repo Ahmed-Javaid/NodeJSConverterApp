@@ -1,56 +1,74 @@
-pipeline { 
-    agent any 
+pipeline {
+    agent any // Use any available agent
 
-    environment {
-        APP_VERSION = "1.0.${BUILD_NUMBER}"
-    }
-
-    stages { 
-        stage('Checkout Code') { 
+    stages {
+        // Stage 1: Checkout Code
+        stage('Checkout Code') {
             steps {
-                echo "Cloning the repository..."
-                checkout scm 
+                checkout scm
             }
         }
 
-        stage('Install Dependencies') { 
+        // Stage 2: Install Dependencies
+        stage('Install Dependencies') {
             steps {
-                bat 'npm install'
+                bat 'npm install' 
             }
         }
 
-        stage('Run Linting and Tests') { 
-            steps {
-                // c. Run linting and tests
-                bat 'npm test' 
+        // Stage 3: Parallel Test Execution 
+        stage('Parallel Test Execution') {
+            parallel {
+                // Job 1: Unit Tests
+                stage('Unit Tests') {
+                    steps {
+                        bat 'npm test'
+                    }
+                }
+                // Job 2: Linting (Simulated) 
+                stage('Linting') {
+                    steps {
+                        echo "Lint passed"
+                    }
+                }
             }
         }
 
-        stage('Archive Artifact') { 
+        // Stage 4: Conditional Deployment Simulation 
+        stage('Conditional Deployment') {
             steps {
-                // d. Archive the build output as an artifact (.zip or .tar file)
-                echo "Archiving artifact for version ${APP_VERSION}..."
-                
-                // Create build directory and copy files necessary for zipping
-                bat 'if not exist build mkdir build'
-                bat 'copy controllers\\converter.js build\\' 
-                
-                // Use PowerShell to create the zip artifact
-                bat "powershell Compress-Archive -Path build\\* -DestinationPath build_v${APP_VERSION}.zip"
-                
-                // Archive the artifact 
-                archiveArtifacts artifacts: "build_v${APP_VERSION}.zip", fingerprint: true
+                script {
+                    // Check the current branch name (provided by Jenkins as env.BRANCH_NAME)
+                    if (env.BRANCH_NAME == 'main') { 
+                        echo "Deployed to Production Environment (main branch)"
+                    } else if (env.BRANCH_NAME == 'dev') { 
+                        echo "Deployed to Staging Environment (dev branch)"
+                    } else { 
+                        echo "Feature branch detected - Deployment Skipped."
+                    }
+                }
             }
         }
-    }
 
-    post { 
-        // e. Send an email notification on build success or failure (Simulated)
-        success { 
-            echo 'Email sent to i222530@nu.edu.pk' 
+        // Stage 5: Archive Artifacts
+        stage('Archive Artifacts') {
+            steps {
+                archiveArtifacts artifacts: 'package.json', fingerprint: true
+            }
         }
-        failure { 
-            echo 'Email sent to i222530@nu.edu.pk' 
+    } // End of stages
+
+    // Post-build actions run after all stages
+    post {
+        // Stage 6: Notification
+        success {
+            script {
+                def timestamp = new Date().format("yyyy-MM-dd HH:mm:ss")
+                echo "Build #${env.BUILD_NUMBER} on branch ${env.BRANCH_NAME} completed successfully at ${timestamp}"
+            }
+        }
+        failure {
+            echo "Build #${env.BUILD_NUMBER} on branch ${env.BRANCH_NAME} FAILED."
         }
     }
 }

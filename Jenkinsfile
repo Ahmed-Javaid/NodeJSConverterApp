@@ -2,14 +2,12 @@ pipeline {
     agent any 
 
     environment {
-        // Define a versioning variable using the built-in BUILD_NUMBER for artifact naming
         APP_VERSION = "1.0.${BUILD_NUMBER}"
     }
 
     stages { 
         stage('Checkout Code') { 
             steps {
-                // a. Clone the GitHub repository [cite: 52]
                 echo "Cloning the repository..."
                 checkout scm 
             }
@@ -17,25 +15,20 @@ pipeline {
 
         stage('Install Dependencies') { 
             steps {
-                // b. Install dependencies [cite: 53]
                 bat 'npm install'
             }
         }
 
         stage('Run Linting and Tests') { 
             steps {
-                // c. Run linting and tests [cite: 54]
+                // c. Run linting and tests
                 bat 'npm test' 
-                
-                // Simulate linting: The task does not provide a specific command, 
-                // so we use a simulation echo.
-                bat 'echo Running linting simulation...' 
             }
         }
 
         stage('Archive Artifact') { 
             steps {
-                // d. Archive the build output as an artifact (.zip or .tar file) [cite: 55]
+                // d. Archive the build output as an artifact (.zip or .tar file)
                 echo "Archiving artifact for version ${APP_VERSION}..."
                 
                 // Create build directory and copy files necessary for zipping
@@ -52,12 +45,12 @@ pipeline {
     }
 
     post { 
-        // e. Send an email notification on build success or failure (Simulated) [cite: 56]
+        // e. Send an email notification on build success or failure (Simulated)
         success { 
-            echo 'Email sent to team@example.com' // Simulating notification [cite: 57]
+            echo 'Email sent to i222530@nu.edu.pk' 
         }
         failure { 
-            echo 'Email sent to team@example.com' // Simulating notification [cite: 57]
+            echo 'Email sent to i222530@nu.edu.pk' 
         }
     }
 }
